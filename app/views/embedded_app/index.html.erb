@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <% application_name = ShopifyApp.configuration.application_name %>
+    <title><%= application_name %></title>
+    <link rel="stylesheet" href="https://sdks.shopifycdn.com/polaris/<%= polaris_version %>/polaris.min.css">
+    <%= stylesheet_link_tag 'application' %>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <% if Rails.env.development? && params[:devtools].present? %>
+      <!-- connect to standalone react-devtools -->
+      <script src="https://react-devtools.test"></script>
+    <% end %>
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <div class="app-content">
+        <main role="main" id="main">
+          <p>Loading...</p>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      window.SHOPIFY_API_KEY = "<%= j ShopifyApp.configuration.api_key %>";
+      window.SHOP_ORIGIN = "<%= j "#{ @shop_session.url }" %>";
+      window.APP_HANDLE = "<%= j "#{ ENV["SHOPIFY_APP_HANDLE"]}"%>" || SHOPIFY_API_KEY;
+
+      // redirect to shopify admin (it's faster if we do it here instead of waiting for Polaris to load)
+      if (window.parent == window) {
+        document.querySelector('#main').innerHTML = '<p>Redirecting to Shopify Admin...</p>';
+        window.location = 'https://' + SHOP_ORIGIN + '/admin/apps/' + APP_HANDLE + window.location.pathname + window.location.search + window.location.hash;
+      }
+    </script>
+    <%= javascript_pack_tag 'embedded_app' %>
+  </body>
+</html>
